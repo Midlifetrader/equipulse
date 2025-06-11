@@ -103,7 +103,7 @@ with col2:
 with col3:
     st.subheader("📰 Nieuws & Sentiment")
 
-    api_key = "JOUW_NEWSAPI_KEY_HIER"  # Vul je eigen NewsAPI key in
+    api_key = "aaba881fc80e4ea8b23113534527b52a" 
     analyzer = SentimentIntensityAnalyzer()
 
     def haal_nieuws(ticker):
