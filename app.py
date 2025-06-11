@@ -103,9 +103,31 @@ with col2:
 with col3:
     st.subheader("📰 Nieuws & Sentiment")
 
-    api_key = "aaba881fc80e4ea8b23113534527b52a" 
+    api_key = "aaba881fc80e4ea8b23113534527b52a"  # Vul je eigen NewsAPI key in
     analyzer = SentimentIntensityAnalyzer()
 
     def haal_nieuws(ticker):
         zoekterm = ticker + " stock"
-        url = f"https://newsapi.org/v2/everything?q={zoekterm}&sortBy=publishedAt&apiKey={
+        url = f"https://newsapi.org/v2/everything?q={zoekterm}&sortBy=publishedAt&apiKey={api_key}&language=nl"
+        response = requests.get(url)
+        if response.status_code == 200:
+            artikelen = response.json()["articles"][:5]
+            for artikel in artikelen:
+                titel = artikel["title"]
+                url = artikel["url"]
+                sentiment = analyzer.polarity_scores(titel)["compound"]
+                if sentiment >= 0.05:
+                    label = "😊 Positief"
+                elif sentiment <= -0.05:
+                    label = "😠 Negatief"
+                else:
+                    label = "😐 Neutraal"
+
+                st.markdown(f"**[{titel}]({url})**")
+                st.caption(f"Sentiment: {label}")
+                st.markdown("---")
+        else:
+            st.warning("Nieuws kon niet worden opgehaald.")
+
+    if st.session_state.geselecteerd:
+        haal_nieuws(st.session_state.geselecteerd)
