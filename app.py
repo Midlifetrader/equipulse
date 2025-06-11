@@ -32,7 +32,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 st.subheader("📰 Laatste nieuws + sentiment")
 
-api_key = "vcyBV6X4YVAtzifE75+xSA==XwOZ9fVYhexmRomZ"  # 
+api_key = "aaba881fc80e4ea8b23113534527b52a"  # 
 analyzer = SentimentIntensityAnalyzer()
 
 def haal_nieuws(ticker):
