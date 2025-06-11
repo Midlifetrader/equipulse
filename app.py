@@ -13,7 +13,21 @@ if "portfolio" not in st.session_state:
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = None
 
-# Aandeel toevoegen
+# Functie om % verandering te berekenen
+def get_percentage_change(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        data = stock.history(period="2d")  # 2 dagen data ophalen (vandaag en gisteren)
+        if len(data) >= 2:
+            close_prices = data['Close']
+            pct_change = (close_prices[-1] - close_prices[-2]) / close_prices[-2] * 100
+            return pct_change
+        else:
+            return None
+    except:
+        return None
+
+# Sidebar - Portfolio en aandelen toevoegen
 with st.sidebar:
     st.subheader("📋 Portfolio")
     ticker = st.text_input("Voeg aandeel toe (bijv. AAPL)")
@@ -26,9 +40,24 @@ with st.sidebar:
             else:
                 st.warning(f"{ticker} staat al in de lijst.")
 
-    # Portfolio weergeven
+    # Portfolio weergeven met % verandering
     for aandeel in st.session_state.portfolio:
-        if st.button(aandeel):
+        pct_change = get_percentage_change(aandeel)
+        kleur = ""
+        if pct_change is not None:
+            if pct_change > 0:
+                kleur = "🟩"
+            elif pct_change < 0:
+                kleur = "🟥"
+            else:
+                kleur = ""
+        label = f"{aandeel} "
+        if pct_change is not None:
+            label += f"{kleur} {pct_change:.2f}%"
+        else:
+            label += " (geen data)"
+
+        if st.button(label):
             st.session_state.geselecteerd = aandeel
 
     if st.session_state.portfolio:
@@ -45,7 +74,7 @@ if not st.session_state.geselecteerd and st.session_state.portfolio:
 # Layout: 3 kolommen
 col1, col2, col3 = st.columns([1, 2, 1])
 
-# ✅ MIDDEN: Koersgrafiek
+# MIDDEN: Koersgrafiek
 with col2:
     if st.session_state.geselecteerd:
         aandeel = st.session_state.geselecteerd
@@ -70,35 +99,13 @@ with col2:
         except:
             st.error("Fout bij ophalen van koersgegevens.")
 
-# 📰 RECHTS: Nieuws + sentiment
+# RECHTS: Nieuws + sentiment
 with col3:
     st.subheader("📰 Nieuws & Sentiment")
 
-    api_key = "aaba881fc80e4ea8b23113534527b52a"  
+    api_key = "JOUW_NEWSAPI_KEY_HIER"  # Vul je eigen NewsAPI key in
     analyzer = SentimentIntensityAnalyzer()
 
     def haal_nieuws(ticker):
         zoekterm = ticker + " stock"
-        url = f"https://newsapi.org/v2/everything?q={zoekterm}&sortBy=publishedAt&apiKey={api_key}&language=nl"
-        response = requests.get(url)
-        if response.status_code == 200:
-            artikelen = response.json()["articles"][:5]
-            for artikel in artikelen:
-                titel = artikel["title"]
-                url = artikel["url"]
-                sentiment = analyzer.polarity_scores(titel)["compound"]
-                if sentiment >= 0.05:
-                    label = "😊 Positief"
-                elif sentiment <= -0.05:
-                    label = "😠 Negatief"
-                else:
-                    label = "😐 Neutraal"
-
-                st.markdown(f"**[{titel}]({url})**")
-                st.caption(f"Sentiment: {label}")
-                st.markdown("---")
-        else:
-            st.warning("Nieuws kon niet worden opgehaald.")
-
-    if st.session_state.geselecteerd:
-        haal_nieuws(st.session_state.geselecteerd)
+        url = f"https://newsapi.org/v2/everything?q={zoekterm}&sortBy=publishedAt&apiKey={
